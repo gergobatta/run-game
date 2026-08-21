@@ -71,6 +71,26 @@
     display:flex;gap:14px;font-size:14px;color:var(--text-dim);font-weight:600;
   }
   #hud b{color:var(--accent);font-size:17px;font-family:'Baloo 2',sans-serif;}
+  #muteBtn{
+    width:34px;
+    height:34px;
+    padding:0;
+    border:2px solid var(--panel-line);
+    border-radius:50%;
+    background:#2a0d30;
+    color:var(--text);
+    font-size:17px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    flex-shrink:0;
+    touch-action:manipulation;
+  }
+
+  #muteBtn:active{
+    transform:scale(.92);
+  }
   #canvasWrap{
     position:relative;
     flex:1;
@@ -178,7 +198,6 @@
   }
   #submitScoreBtn:active{transform:translateY(2px);}
   #submitScoreBtn:disabled{opacity:.6;}
- 
   #leaderboardBox{
     width:100%;
     max-width:260px;
@@ -218,6 +237,7 @@
     <div id="hud">
       <div>Pont: <b id="scoreVal">0</b></div>
       <div>💗 <b id="coinVal">0</b></div>
+	  <button id="muteBtn" type="button" aria-label="Hang be/ki">🔊</button>
     </div>
   </header>
 
@@ -329,6 +349,37 @@ function playTone(type){
     osc.stop(now + 0.4);
   }
 }
+
+function toggleMute(){
+  soundMuted = !soundMuted;
+
+  if(soundMuted){
+    muteBtn.textContent = '🔇';
+
+    if(spotifyController){
+      try{
+        spotifyController.pause();
+      }catch(e){}
+    }
+
+    musicStarted = false;
+
+  }else{
+    muteBtn.textContent = '🔊';
+
+    if(running && spotifyController && !musicStarted && !soundMuted){
+      musicStarted = true;
+      try{
+        spotifyController.play();
+      }catch(e){}
+    }
+  }
+}
+
+muteBtn.addEventListener('click', (e)=>{
+  e.stopPropagation();
+  toggleMute();
+});
 	
   function trySetupSpotify(){
     if(!spotifyIframeAPI || !SPOTIFY_URI) return;
@@ -406,6 +457,7 @@ function playTone(type){
 
   const scoreEl = document.getElementById('scoreVal');
   const coinEl = document.getElementById('coinVal');
+  const muteBtn = document.getElementById('muteBtn');
   const overlay = document.getElementById('overlay');
   const overlayTitle = document.getElementById('overlayTitle');
   const overlaySub = document.getElementById('overlaySub');
