@@ -270,12 +270,16 @@
     if(!spotifyIframeAPI || !SPOTIFY_URI) return;
     const element = document.getElementById('spotifyEmbed');
     spotifyIframeAPI.createController(element, { uri: SPOTIFY_URI, width: '100%', height: '80' }, (controller) => {
-      spotifyController = controller;
-      controller.addListener('playback_update', (e) => {
-        if(e.data.isPaused){
-          musicStarted = false;
-        }
-      });
+   	  spotifyController = controller;
+    
+    	let playStartedAt = 0;
+
+		controller.addListener('playback_update', (e) => {
+    		const sinceStart = Date.now() - playStartedAt;
+  			if(e.data.isPaused && sinceStart > 1500){
+				musicStarted = false;
+  			}
+		});
     });
   }
 
