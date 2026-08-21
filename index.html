@@ -26,7 +26,12 @@
     --text:#fff0f8;
     --text-dim:#e2b8de;
   }
-  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  *{  box-sizing:border-box;
+  -webkit-tap-highlight-color:transparent;
+  -webkit-user-select:none;
+  -moz-user-select:none;
+  user-select:none;
+   }
   html,body{
     margin:0;
     width:100%;
@@ -144,6 +149,8 @@
     gap:8px;
   }
   #nameInput{
+    user-select:text;
+    -webkit-user-select:text;
     flex:1;
     min-width:0;
     padding:9px 12px;
@@ -779,7 +786,7 @@ function drawPickupEffects(){
   function draw(){
     ctx.clearRect(0,0,W,H);
     drawBackground();
-	drawPickupEffects();
+	//drawPickupEffects();
 
     for(const c of coins){
       const bob = Math.sin(frame*0.15 + c.x*0.05)*4;
@@ -797,6 +804,7 @@ function drawPickupEffects(){
     ctx.scale(squashX, squashY);
     drawSprite(charImg, 0, 0, player.w, player.h);
     ctx.restore();
+	drawPickupEffects();
   }
 
  function gameOver(){
