@@ -247,7 +247,7 @@
     <h1>✨ Run</h1>
     <div id="hud">
       <div>Pont: <b id="scoreVal">0</b></div>
-      <div>💗 <b id="coinVal">0</b></div>
+      <div>🎤 <b id="coinVal">0</b></div>
     </div>
   </header>
 
@@ -560,6 +560,8 @@ function jump(){
         c.taken = true;
         coinCount++;
         coinEl.textContent = coinCount;
+		score += 25;
+		scoreEl.textContent = Math.floor(score);
 		playTone('coin');
       }
     }
