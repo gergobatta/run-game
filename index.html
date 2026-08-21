@@ -223,6 +223,7 @@
   }
 
   #ticketBtn{
+	display: none;
     padding:13px 18px;
     font-family:'Baloo 2',sans-serif;
     font-size:16px;
@@ -665,6 +666,7 @@ function jump(){
     finalScoreEl.style.display = 'block';
     finalScoreEl.innerHTML = `Elért pont: <b>${Math.floor(score)}</b> &nbsp;•&nbsp; Gyűjtött: <b>${coinCount}</b>`;
     startBtn.textContent = 'Újra';
+	document.getElementById('ticketBtn').style.display = 'block';
     overlay.classList.remove('hidden');
     tapHint.style.display = 'none';
 
@@ -774,6 +776,7 @@ function jump(){
 
   function startGame(){
     initState();
+	document.getElementById('ticketBtn').style.display = 'none';
     running = true;
     lastTime = null;
     overlay.classList.add('hidden');
