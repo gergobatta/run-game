@@ -248,26 +248,22 @@
 <script>
 (function(){
 
-  const CHARACTER_IMG_SRC = '';// 'assets/bogi_200x200.png';   // a futó szereplő képe
-  const OBSTACLE_IMG_SRC  = 'assets/kaktusz_200x200.png';    // az akadály képe
-  const COIN_IMG_SRC      = 'assets/mikrofon_200x200.png';  // az ugrás közben gyűjthető tárgy képe
-  /* ========================================================= */
-
- /* =========================================================
-     LÁTOGATÓSZÁMLÁLÓ (Cloudflare Worker)
-  ========================================================= */
-  const VISIT_COUNTER_URL = 'https://dawn-mouse-aff8.kisbatta92.workers.dev';
-  const LEADERBOARD_URL = 'https://bogirun-leaderboard.kisbatta92.workers.dev';
- // const SPOTIFY_URI = 'spotify:artist:3VgOKuwKvAYU4aT7atESfM';
-  const SPOTIFY_URI = 'spotify:track:3zU9rdflI65tK4dkkNSp77';
+  let CHARACTER_IMG_SRC, OBSTACLE_IMG_SRC, COIN_IMG_SRC, VISIT_COUNTER_URL, LEADERBOARD_URL, SPOTIFY_URI;
   /* ========================================================= */
 
   let spotifyController = null;
   let musicStarted = false;
+  let spotifyIframeAPI = null;
 
   window.onSpotifyIframeApiReady = (IFrameAPI) => {
+    spotifyIframeAPI = IFrameAPI;
+    trySetupSpotify();
+  };
+
+  function trySetupSpotify(){
+    if(!spotifyIframeAPI || !SPOTIFY_URI) return;
     const element = document.getElementById('spotifyEmbed');
-    IFrameAPI.createController(element, { uri: SPOTIFY_URI, width: '100%', height: '80' }, (controller) => {
+    spotifyIframeAPI.createController(element, { uri: SPOTIFY_URI, width: '100%', height: '80' }, (controller) => {
       spotifyController = controller;
       controller.addListener('playback_update', (e) => {
         if(e.data.isPaused){
@@ -275,18 +271,7 @@
         }
       });
     });
-  };
-
-  fetch(VISIT_COUNTER_URL)
-    .then(r => r.json())
-    .then(data => {
-      const el = document.getElementById('visitVal');
-      if(el) el.textContent = data.count;
-    })
-    .catch(() => {
-      const el = document.getElementById('visitVal');
-      if(el) el.textContent = '–';
-    });
+  }
 
   // --- alapértelmezett grafikák, ha a fenti fájlok nem léteznek ---
   const FALLBACK_CHARACTER = svgDataUri(`
@@ -332,10 +317,8 @@
     return img;
   }
 
-  const charImg = loadImage(CHARACTER_IMG_SRC, FALLBACK_CHARACTER);
-  const obsImg  = loadImage(OBSTACLE_IMG_SRC, FALLBACK_OBSTACLE);
-  const coinImg = loadImage(COIN_IMG_SRC, FALLBACK_COIN);
-
+  let charImg, obsImg, coinImg;
+	
   // ---- Canvas setup ----
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
@@ -614,6 +597,46 @@
       .catch(() => {});
   }
 
+  function loadConfigAndStart(){
+    fetch('config/config.json')
+      .then(r => r.json())
+      .then(cfg => {
+        CHARACTER_IMG_SRC = cfg.characterImg || '';
+        OBSTACLE_IMG_SRC  = cfg.obstacleImg  || '';
+        COIN_IMG_SRC      = cfg.coinImg      || '';
+        VISIT_COUNTER_URL = cfg.visitCounterUrl || '';
+        LEADERBOARD_URL   = cfg.leaderboardUrl  || '';
+        SPOTIFY_URI       = cfg.spotifyUri      || '';
+
+        charImg = loadImage(CHARACTER_IMG_SRC, FALLBACK_CHARACTER);
+        obsImg  = loadImage(OBSTACLE_IMG_SRC, FALLBACK_OBSTACLE);
+        coinImg = loadImage(COIN_IMG_SRC, FALLBACK_COIN);
+
+        if(VISIT_COUNTER_URL){
+          fetch(VISIT_COUNTER_URL)
+            .then(r => r.json())
+            .then(data => {
+              const el = document.getElementById('visitVal');
+              if(el) el.textContent = data.count;
+            })
+            .catch(() => {
+              const el = document.getElementById('visitVal');
+              if(el) el.textContent = '–';
+            });
+        }
+
+        trySetupSpotify();
+
+        resize();
+        initState();
+        draw();
+        loadLeaderboard();
+      })
+      .catch(err => {
+        console.error('Nem sikerült betölteni a config.json fájlt:', err);
+      });
+  }
+
   let gameToken = null;
 
   function startGame(){
@@ -657,10 +680,11 @@
     }
   });
 
-  resize();
-  initState();
-  draw();
-  loadLeaderboard();
+//  resize();
+//  initState();
+//  draw();
+//  loadLeaderboard();
+  loadConfigAndStart();
 })();
 </script>
 </body>
