@@ -649,6 +649,7 @@
   });  
 
   window.addEventListener('keydown', (e)=>{
+    if(document.activeElement === nameInputEl) return;
     if(e.code==='Space'||e.code==='ArrowUp'){
       e.preventDefault();
       if(running) jump();
