@@ -10,7 +10,7 @@
 <meta property="og:url" content="index.html">
 <meta property="og:type" content="website">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.googleapis.fcom">
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
@@ -225,7 +225,7 @@
   #ticketBtn{
     padding:13px 18px;
     font-family:'Baloo 2',sans-serif;
-    font-size:18px;
+    font-size:16px;
     font-weight:700;
     border:none;
     border-radius:30px;
@@ -233,6 +233,7 @@
     color:#5a3d00;
     cursor:pointer;
     box-shadow:0 4px 0 #b58c00;
+    white-space:nowrap;
   }
 
   #ticketBtn:active{
@@ -374,7 +375,17 @@ function playTone(type){
         }
       });
     });
-  }
+  } 
+  
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+      if (spotifyController && musicStarted) {
+        try {
+          spotifyController.pause();
+        } catch(e) {}
+      }
+    }
+  });
 
   // --- alapértelmezett grafikák, ha a fenti fájlok nem léteznek ---
   const FALLBACK_CHARACTER = svgDataUri(`
