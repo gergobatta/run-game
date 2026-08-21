@@ -372,7 +372,7 @@ function playTone(type){
       spotifyController = controller;
       controller.addListener('playback_update', (e) => {
         if(e.data.isPaused){
-          musicStarted = false;
+          //musicStarted = false;
         }
       });
     });
