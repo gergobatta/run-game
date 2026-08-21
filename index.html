@@ -209,6 +209,36 @@
   #leaderboardList li:nth-child(odd){background:rgba(255,255,255,0.06);}
   #leaderboardList li b{color:var(--accent-2);font-family:'Baloo 2',sans-serif;}
   #leaderboardList li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  
+  #gameButtons{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+    margin-top:10px;
+  }
+
+  #gameButtons #startBtn{
+    margin-top:0;
+  }
+
+  #ticketBtn{
+    padding:12px 18px;
+    font-family:'Baloo 2',sans-serif;
+    font-size:14px;
+    font-weight:700;
+    border:none;
+    border-radius:30px;
+    background:var(--accent-2);
+    color:#5a3d00;
+    cursor:pointer;
+    box-shadow:0 4px 0 #b58c00;
+  }
+
+  #ticketBtn:active{
+    transform:translateY(3px);
+    box-shadow:none;
+  }
 </style>
 </head>
 <body>
@@ -239,7 +269,10 @@
         <h3>🏆 Ranglista</h3>
         <ol id="leaderboardList"><li>Betöltés…</li></ol>
       </div>
-      <button id="startBtn">Indítás</button>
+	  <div id="gameButtons">
+  		<button id="startBtn">Indítás</button>
+  		<button id="ticketBtn" type="button">🎟️ A jegyed itt találod</button>
+      </div>
     </div>
   </div>
 
@@ -411,6 +444,7 @@ function playTone(type){
   const overlaySub = document.getElementById('overlaySub');
   const finalScoreEl = document.getElementById('finalScore');
   const startBtn = document.getElementById('startBtn');
+  const ticketBtn = document.getElementById('ticketBtn');
   const tapHint = document.getElementById('tapHint');
   const scoreSubmitEl = document.getElementById('scoreSubmit');
   const nameInputEl = document.getElementById('nameInput');
@@ -718,7 +752,11 @@ function jump(){
         loadLeaderboard();
       });
   }
-
+  
+  function openTicket(){
+    window.location.href = 'https://valami.hu/jegyem';
+  }
+	
   let gameToken = null;
 
   function startGame(){
@@ -760,6 +798,11 @@ function jump(){
       if(running) jump();
       else if(!overlay.classList.contains('hidden')) startGame();
     }
+  });
+
+  ticketBtn.addEventListener('click', (e)=>{
+    e.stopPropagation();
+    openTicket();
   });
 
 //  resize();
