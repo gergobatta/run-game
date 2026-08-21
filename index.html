@@ -241,6 +241,76 @@
     transform:translateY(3px);
     box-shadow:none;
   }
+  /* --- GOMB ANIMÁCIÓK --- */
+  #startBtn,
+  #ticketBtn,
+  #submitScoreBtn{
+    transition:
+      transform .15s ease,
+      box-shadow .15s ease,
+      filter .15s ease;
+  }
+
+  #startBtn:hover,
+  #ticketBtn:hover,
+  #submitScoreBtn:hover{
+    transform:translateY(-2px);
+    filter:brightness(1.08);
+  }
+
+  #startBtn:active,
+  #ticketBtn:active,
+  #submitScoreBtn:active{
+    transform:translateY(2px) scale(.98);
+    filter:brightness(.98);
+  }
+
+  /* --- GAME OVER ANIMÁCIÓ --- */
+  #overlay.gameOverAnim{
+    animation:gameOverFade .35s ease-out;
+  }
+
+  #overlay.gameOverAnim #overlayTitle{
+    animation:gameOverTitle .5s cubic-bezier(.2,.8,.2,1);
+  }
+
+  #overlay.gameOverAnim #finalScore{
+    animation:gameOverScore .55s ease-out .08s both;
+  }
+
+  @keyframes gameOverFade{
+    from{
+      opacity:0;
+    }
+    to{
+      opacity:1;
+    }
+  }
+
+  @keyframes gameOverTitle{
+    0%{
+      opacity:0;
+      transform:scale(.7) translateY(-10px);
+    }
+    70%{
+      transform:scale(1.08);
+    }
+    100%{
+      opacity:1;
+      transform:scale(1);
+    }
+  }
+
+  @keyframes gameOverScore{
+    from{
+      opacity:0;
+      transform:translateY(10px);
+    }
+    to{
+      opacity:1;
+      transform:translateY(0);
+    }
+  }
 </style>
 </head>
 <body>
@@ -467,6 +537,7 @@ function playTone(type){
   let running = false;
   let groundY, player, obstacles, coins, speed, gravity, jumpVel, score, coinCount, spawnTimer, coinSpawnTimer, frame;
   let sparkles = [];
+  let pickupEffects = [];
 
   function initState(){
     resize();
@@ -491,6 +562,7 @@ function playTone(type){
     coinSpawnTimer = 0;
     frame = 0;
     sparkles = [];
+	pickupEffects = [];
     for(let i=0;i<22;i++){
       sparkles.push({x:Math.random()*W, y:Math.random()*H*0.6, r:1+Math.random()*2});
     }
@@ -574,6 +646,14 @@ function jump(){
         coinEl.textContent = coinCount;
 		score += 25;
 		scoreEl.textContent = Math.floor(score);
+        pickupEffects.push({
+          x: c.x,
+          y: c.y,
+          life: 0,
+          maxLife: 0.65,
+          type: 'coin',
+          value: '+25'
+        });
 		playTone('coin');
       }
     }
@@ -636,9 +716,70 @@ function jump(){
     }
   }
 
+function drawPickupEffects(){
+    for(let i = pickupEffects.length - 1; i >= 0; i--){
+      const effect = pickupEffects[i];
+
+      effect.life += 0.016;
+
+      const progress = effect.life / effect.maxLife;
+
+      if(progress >= 1){
+        pickupEffects.splice(i, 1);
+        continue;
+      }
+
+      const y = effect.y - progress * H * 0.10;
+
+      ctx.save();
+
+      // Elhalványulás
+      ctx.globalAlpha = 1 - progress;
+
+      // Kis méret-növekedés az elején
+      const scale = 0.8 + Math.min(progress * 1.5, 0.5);
+
+      ctx.translate(effect.x, y);
+      ctx.scale(scale, scale);
+
+      // +25
+      ctx.font = "700 17px 'Baloo 2', sans-serif";
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = '#5a1b4d';
+      ctx.strokeText(effect.value, 0, 0);
+
+      ctx.fillStyle = '#ffd23f';
+      ctx.fillText(effect.value, 0, 0);
+
+      // Kis csillagok a mikrofon körül
+      if(effect.type === 'coin'){
+        for(let j = 0; j < 5; j++){
+          const angle = j * Math.PI * 2 / 5;
+          const radius = 14 + progress * 18;
+
+          const sx = Math.cos(angle) * radius;
+          const sy = Math.sin(angle) * radius;
+
+          ctx.globalAlpha = (1 - progress) * 0.8;
+          ctx.fillStyle = '#ffffff';
+
+          ctx.beginPath();
+          ctx.arc(sx, sy, 2, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
+
+      ctx.restore();
+    }
+  }
+	
   function draw(){
     ctx.clearRect(0,0,W,H);
     drawBackground();
+	drawPickupEffects();
 
     for(const c of coins){
       const bob = Math.sin(frame*0.15 + c.x*0.05)*4;
@@ -661,6 +802,11 @@ function jump(){
  function gameOver(){
     running = false;
     playTone('gameover');
+
+    overlay.classList.remove('gameOverAnim');
+    void overlay.offsetWidth;
+    overlay.classList.add('gameOverAnim');
+	 
     overlayTitle.textContent = 'Vége a játéknak!';
     overlaySub.textContent = 'Próbáld meg túlszárnyalni az előző eredményed!';
     finalScoreEl.style.display = 'block';
