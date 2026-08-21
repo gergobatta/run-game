@@ -78,5 +78,5 @@ A zene csak az első "Indítás" gombnyomásra indul el (böngésző-korlátozá
 
 ## Ismert korlátok
 
-- A pontszám kliens oldalon (böngészőben) számolódik, ezért technikailag hozzáértő valaki hamis eredményt tudna beküldeni közvetlenül a Worker API-nak. Egy kisebb, baráti/családi körben használt játéknál ez valószínűleg nem jelent gondot, de ha szükséges, ez tovább erősíthető (pl. egyszerű session-tokennel).
+- A pontszám kliens oldalon (böngészőben) számolódik, ezért technikailag hozzáértő valaki hamis eredményt tudna beküldeni közvetlenül a Worker API-nak, de session token van alkalmazva, illetve Cloudflare Worker oldalon a token kiadásától számítva maximális lehetséges pont kerül meghatározása, ennél magasabbat eldob mentés előtt.
 - Ha két különböző ember ugyanazt a nevet adja meg, a legjobb eredményük egy sorba "olvad össze" a ranglistán. Célszerű instanevet kérni. 
