@@ -608,11 +608,13 @@
     fetch(LEADERBOARD_URL + '/score', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, score: Math.floor(score) })
+      body: JSON.stringify({ name, score: Math.floor(score), token: gameToken })
     })
       .then(() => loadLeaderboard())
       .catch(() => {});
   }
+
+  let gameToken = null;
 
   function startGame(){
     initState();
@@ -621,6 +623,11 @@
     overlay.classList.add('hidden');
     tapHint.style.display = 'block';
     requestAnimationFrame(loop);
+
+    fetch(LEADERBOARD_URL + '/start')
+      .then(r => r.json())
+      .then(data => { gameToken = data.token; })
+      .catch(() => { gameToken = null; });
 
     if(spotifyController && !musicStarted){
       musicStarted = true;
