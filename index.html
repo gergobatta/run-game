@@ -598,8 +598,19 @@
   }
 
   function loadConfigAndStart(){
-    fetch('config/config.json')
+    fetch('config/game-settings.json')
       .then(r => r.json())
+      .catch(err => {
+        console.error('Nem sikerült betölteni a game-settings.json fájlt, alapértelmezett beállításokkal indul a játék:', err);
+        return {
+          characterImg: 'assets/bogi_200x200.png',
+          obstacleImg: 'assets/kaktusz_200x200.png',
+          coinImg: 'assets/mikrofon_200x200.png',
+          visitCounterUrl: 'https://dawn-mouse-aff8.kisbatta92.workers.dev',
+          leaderboardUrl: 'https://bogirun-leaderboard.kisbatta92.workers.dev',
+          spotifyUri: 'spotify:artist:3VgOKuwKvAYU4aT7atESfM'
+        };
+      })
       .then(cfg => {
         CHARACTER_IMG_SRC = cfg.characterImg || '';
         OBSTACLE_IMG_SRC  = cfg.obstacleImg  || '';
@@ -631,9 +642,6 @@
         initState();
         draw();
         loadLeaderboard();
-      })
-      .catch(err => {
-        console.error('Nem sikerült betölteni a config.json fájlt:', err);
       });
   }
 
