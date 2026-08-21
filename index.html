@@ -137,7 +137,15 @@
   #startBtn:active{transform:translateY(3px);box-shadow:none;}
   #finalScore{font-size:15px;color:var(--text);}
   #finalScore b{color:var(--accent-2);font-family:'Baloo 2',sans-serif;font-size:21px;}
-
+  #bestScoreDisplay{
+    font-size:13px;
+    color:var(--text-dim);
+  }
+  #bestScoreDisplay b{
+    color:var(--accent);
+    font-family:'Baloo 2',sans-serif;
+    font-size:17px;
+  }
   #scoreSubmit{
     display:none;
     width:100%;
@@ -230,6 +238,7 @@
       <h2 id="overlayTitle">Run</h2>
       <p id="overlaySub">Ugorj az akadályok fölött, gyűjtsd a mikrofonokat!</p>
       <div id="finalScore" style="display:none;"></div>
+      <div id="bestScoreDisplay" style="display:none;"></div>
       <div id="scoreSubmit">
         <input type="text" id="nameInput" placeholder="Neved" maxlength="16" autocomplete="off">
         <button id="submitScoreBtn">Mentés</button>
@@ -265,7 +274,76 @@
     spotifyIframeAPI = IFrameAPI;
     trySetupSpotify();
   };
+let spotifyController = null;
+let musicStarted = false;
+let spotifyIframeAPI = null;
+	
+let audioCtx = null;
+let soundMuted = false;
 
+function initAudio(){
+  if(!audioCtx){
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  }
+
+  if(audioCtx.state === 'suspended'){
+    audioCtx.resume();
+  }
+}
+
+function playTone(type){
+  if(soundMuted) return;
+
+  initAudio();
+
+  const now = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+
+  if(type === 'jump'){
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(650, now + 0.08);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.10);
+
+    osc.start(now);
+    osc.stop(now + 0.11);
+  }
+
+  if(type === 'coin'){
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(700, now);
+    osc.frequency.setValueAtTime(1000, now + 0.06);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.14, now + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.13);
+
+    osc.start(now);
+    osc.stop(now + 0.14);
+  }
+
+  if(type === 'gameover'){
+    osc.type = 'sawtooth';
+    osc.frequency.setValueAtTime(420, now);
+    osc.frequency.exponentialRampToValueAtTime(130, now + 0.35);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.12, now + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.38);
+
+    osc.start(now);
+    osc.stop(now + 0.4);
+  }
+}
+
+window.onSpotifyIframeApiReady = (IFrameAPI) => {
   function trySetupSpotify(){
     if(!spotifyIframeAPI || !SPOTIFY_URI) return;
     const element = document.getElementById('spotifyEmbed');
@@ -350,6 +428,7 @@
   const overlayTitle = document.getElementById('overlayTitle');
   const overlaySub = document.getElementById('overlaySub');
   const finalScoreEl = document.getElementById('finalScore');
+  const bestScoreDisplayEl = document.getElementById('bestScoreDisplay');
   const startBtn = document.getElementById('startBtn');
   const tapHint = document.getElementById('tapHint');
   const scoreSubmitEl = document.getElementById('scoreSubmit');
@@ -395,8 +474,9 @@
   function jump(){
     if(!running) return;
     if(player.onGround){
-      player.vy = jumpVel;
-      player.onGround = false;
+		player.vy = jumpVel;
+		player.onGround = false;
+		playTone('jump');
     }
   }
 
@@ -464,6 +544,7 @@
         c.taken = true;
         coinCount++;
         coinEl.textContent = coinCount;
+		playTone('coin');
       }
     }
 
@@ -549,11 +630,25 @@
 
  function gameOver(){
     running = false;
+	playTone('gameover');
     overlayTitle.textContent = 'Vége a játéknak!';
     overlaySub.textContent = 'Próbáld meg túlszárnyalni az előző eredményed!';
     finalScoreEl.style.display = 'block';
     finalScoreEl.innerHTML = `Elért pont: <b>${Math.floor(score)}</b> &nbsp;•&nbsp; Gyűjtött: <b>${coinCount}</b>`;
-    startBtn.textContent = 'Újra';
+	const currentScore = Math.floor(score);
+	const previousBest = Number(localStorage.getItem('bestScore') || 0);
+
+  	if(currentScore > previousBest){
+    	localStorage.setItem('bestScore', currentScore);
+
+    	bestScoreDisplayEl.innerHTML = '🏆 <b>ÚJ SAJÁT REKORD!</b>';
+  	} else {
+    	bestScoreDisplayEl.innerHTML =
+      `	Saját rekord: <b>${previousBest}</b>`;
+  	}
+	bestScoreDisplayEl.style.display = 'block';
+    
+	 startBtn.textContent = 'Újra';
     overlay.classList.remove('hidden');
     tapHint.style.display = 'none';
 
